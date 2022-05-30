@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Prova 01</title>
+<h1>Processamento Digital de sinais - Prova Unidade 01</h1>
+<h3>Nome: Elisa Gabriela Machado de Lucena</h3>
+<h3>Matricula: 20190073579</h3>
+</head>
+<body>
+
+<div class="questao1">
+    <h2>Questão 01</h2>
+    <p>A sinalização DTMF1 (do inglês Dual-Tone Multi-Frequency) é uma técnica que permite codificar os dígitos 0 – 9 as letras A, B, C, D e os caracteres “*” e “#”. DTMF é usada nos
+        telefones digitais e em alguns teclados alfanuméricos, permitindo que as teclas acionadas
+        a cada instante sejam codificadas mediante a combinação (soma) de tons de duas
+        frequências específicas. Ao pressionar uma tecla específica será emitido um som audível
+        contendo as 2 frequências determinadas pela linha e coluna da tecla acionada (ver Figura
+        1).
+    </p>
+    <img src="Q1.png" alt="Figura 1">
+    <p>
+        Em base aos conceitos apresentados anteriormente e usando técnicas de processamento
+        digital de sinais estudadas em sala de aula:
+    </p>
+    <p>
+        a) Obtenha uma visualização que permita determinar a sequência de teclas acionadas
+        supondo que o sinal de áudio correspondente foi gravado no arquivo
+        Unknown_DTMF01.wav (disponibilizado no Sigaa); identifique a sequência de
+        teclas acionadas.
+    </p>
+    <hr/>
+        <p>
+            <code>
+            » #Importando arquivo <br/>
+            » x, fs = sf.read('Unknown_DTMF01.wav') <br/>
+            » f, t, Sxx = sig.spectrogram(x, fs) <br/>
+            » plt.pcolormesh(t, f, Sxx, shading='gouraud') <br/>
+            » plt.ylabel('Frequência [Hz]') <br/>
+            » plt.xlabel('Tempo [s]') <br/>
+            » plt.show() <br/>
+            </code>
+        </p>
+        <img src ="espec.png" alt="Espectograma">
+        <p>
+            tecla 1 -> 1477 + 941 = # <br/>
+            tecla 2 -> 1633 + 941 = D <br/>
+            tecla 3 -> 1633 + 852 = C <br/>
+            tecla 4 -> 1633 + 697 = A <br/>
+            tecla 5 -> 1336 + 697 = 2 <br/>
+            tecla 6 -> 1336 + 941 = 0 <br/>
+            tecla 7 -> 1336 + 697 = 2 <br/>
+            tecla 8 -> 1336 + 697 = 2 <br/>
+            <br/>
+            <b>#DCA2022</b>
+        </p>
+    <hr/>
+    <p>
+        b) Implemente algum processamento que permita detectar/estimar os tempos de
+        ocorrência correspondentes ao acionamento de cada tecla;
+        Nota: O sinal de áudio disponibilizado contém ruido o que dificulta a análise do
+        sinal no domínio tempo.
+    </p>
+    <hr/>
+        <p>
+            Os tempos de acionamento de cada tecla podem ser definidos usando um dos parâmetros da função do espectograma, o Sxx. <br/>
+        </p>
+        <p>
+            <code>
+                » amplitude = Sxx.sum(axis=0) <br/>
+                » plt.plot(t, amplitude) <br/>
+                » plt.ylabel('Amplitude') <br/>
+                » plt.xlabel('Tempo [s]') <br/>
+                » plt.show() <br/>
+            </code>
+        </p>
+        <img src="Q1B.png">
+    <hr/>
+    <p>
+        c) Proponha e implemente algum processamento que permita recuperar o sinal de
+        áudio correspondente à sequência de teclas acionadas, mas visando eliminar o
+        ruído contido no sinal original.
+    </p>
+    <hr/>
+        <p>
+            Para eliminar o ruído contido no sinal, é preciso implementar um filtro.
+            Filtro são dispositivos seletores de frequências utilizados para eliminar
+            as frequências não desejadas de um sinal de entrada. Para essa finalidade,
+            foi implementado um filtro passa-banda (ou passa-faixa), que permite a passagem
+            das frequências de uma certa faixa e rejeita (atenua) as frequências fora dessa faixa.
+        </p>
+        <code>
+            » fc = 1/fs <br/>
+            » X = np.fft.fft(x) <br/>
+            » F = np.fft.fftfreq(len(X), fc) <br/>
+            » mask = F >= 0 <br/>
+            » plt.plot(F[mask], abs(X)[mask]) <br/>
+            » plt.xlabel('Frequência') <br/>
+            » plt.ylabel('Amplitude') <br/>
+            » plt.show() <br/>
+            <br/>
+            » def passa_banda(F , X): <br/>
+            &ensp; » for i in range (len(X)): <br/>
+            &emsp;&emsp;&emsp; » if (F[i] < 697) or (F[i] > 1633): <br/>
+            &emsp;&emsp;&emsp; &emsp;&emsp;&emsp; » X[i] = 0 <br/>
+            &ensp; » return X <br/>
+            <br/>
+            » XFil = passa_banda(F, X) <br/>
+            » plt.plot(F[F >= 0], abs(XFil)[F >= 0]) <br/>
+            » plt.show() <br/>
+            <br/>
+            » inverseXFil = np.fft.ifft(XFil) <br/>
+            » plt.plot(tempo, inverseXFil.real) <br/>
+            » plt.show() <br/>
+            <br/>
+            » sf.write('novo.wav', inverseXFil.real, fs)<br/>
+            » f, t, Sxx = sig.spectrogram(inverseXFil.real, fs)<br/>
+            » plt.pcolormesh(t, f, Sxx, shading='gouraud')<br/>
+            » plt.ylabel('Frequency [Hz]')<br/>
+            » plt.xlabel('Time [sec]')<br/>
+            » plt.show() <br/>
+        </code>
+        <p>
+            <img src="Q1C.png"> <br/>
+            <img src="Q1C2.png"> <br/>
+            <img src="Q1C3.png"> <br/>
+            <img src="Q1C4.png"> 
+        </p>
+    <hr/>
+
+
+</div>
+
+<div class="questao2">
+    <h2>Questão 02</h2>
+    <p>
+        Suponha que a mesma sequência de letras é acionada num teclado alfanumérico, mas
+    que o sinal de áudio foi digitalizado usando uma frequência de amostragem (fs)
+    de 3 110 Hz e um filtro antialising com uma frequência de corte de 4 kHz.
+    </p>
+    <p>
+        a) O valor de fs = 3 110 Hz seria um valor adequado para a aplicação de DFTM? Justifique a sua resposta.
+    </p>
+    <hr/>
+    <p>
+        Não, pois não obedece o teorema da amostragem de Nyquist, 
+        que diz que fs deve ser maior do que o dobro da componente 
+        de maior frequência a ser analinado no sinal medido. A maior 
+        frequência possível é 1633 (2*1633 = 3266) que é maior do que o fs proposto (3110). Com isso, aconteceria a sobreposição de espectros.
+
+    </p>
+    <hr/>
+    <p>
+        b) Qual seria a sequência de caracteres detectado caso fosse usado o valor de fs = 3 110 Hz como descrito anteriormente.
+    </p>
+    <hr/>
+    <p>
+        <code>
+            » f, t, Sxx = sig.spectrogram(x, 3110) <br/>
+            » plt.pcolormesh(t, f, Sxx, shading='gouraud') <br/>
+            » plt.ylabel('Frequência [Hz]') <br/>
+            » plt.xlabel('Tempo [s]') <br/>
+            » plt.show() <br/> 
+        </code>
+        <img src="Q2.png">
+    </p>
+    <hr/>
+</div>
+
+<div class="referencias">
+    <h2> Referências</h2>
+    <h3>Bibliotecas utilizadas</h3>
+    <p>
+        » import soundfile as sf <br/>
+        » import numpy as np <br/>
+        » import matplotlib.pyplot as plt <br/>
+        » import scipy.signal as sig <br/>
+    </p>
+    <h3>Documentação</h3>
+    <p>
+        <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html">Função espectograma documentação</a>
+    </p>
+
+</div>
+
+
+</body>
+</html>
